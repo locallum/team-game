@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 inputDirection;
 
     [SerializeField] private Camera mainCamera;
+    [SerializeField] private Animator anim;
 
     // Move variables
     public float moveSpeed = 10f;
@@ -21,7 +22,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 dashDirection;
 
     // Bubble
-     public GameObject bubblePrefab;
+    public GameObject bubblePrefab;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -40,9 +41,12 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (isDashing) {
+        if (isDashing)
+        {
             controller.Move(dashDirection * dashSpeed * Time.deltaTime);
-        } else {
+        }
+        else
+        {
             controller.Move(inputDirection * moveSpeed * Time.deltaTime);
         }
     }
@@ -54,10 +58,19 @@ public class PlayerController : MonoBehaviour
             float h = Input.GetAxisRaw("Horizontal");
             float v = Input.GetAxisRaw("Vertical");
             inputDirection = new Vector3(h, 0f, v).normalized;
+
+            if (inputDirection != Vector3.zero)
+            {
+                anim.SetBool("isRunning", true);
+            }
+            else
+            {
+                anim.SetBool("isRunning", false);
+            }
         }
     }
 
-    private void checkForDash() 
+    private void checkForDash()
     {
         if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing)
         {
@@ -76,28 +89,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void checkForBubble() {
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing) {
+    private void checkForBubble()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing)
+        {
             Instantiate(bubblePrefab, transform.position + transform.forward, Quaternion.identity);
         }
     }
 
-    private void rotatePlayer() {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-
-        float rayDistance;
-        if (groundPlane.Raycast(ray, out rayDistance)) {
-            Vector3 targetPoint = ray.GetPoint(rayDistance);
-            
-            Vector3 inputDirection = targetPoint - transform.position;
-            inputDirection.y = 0;
-
-            if (inputDirection != Vector3.zero) {
-                Quaternion targetRotation = Quaternion.LookRotation(inputDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
-            }
-
+    private void rotatePlayer()
+    {
+        if (inputDirection != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(inputDirection);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
         }
     }
 }
