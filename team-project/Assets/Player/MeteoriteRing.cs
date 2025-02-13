@@ -2,23 +2,26 @@ using UnityEngine;
 
 public class MeteoriteRing : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-
     public ParticleSystem particleSystem;
+
     void Start()
     {
-        particleSystem.Stop();
+        particleSystem.gameObject.SetActive(false);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Q)) {
-            if (!particleSystem.isPlaying) {
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            bool isActive = particleSystem.gameObject.activeInHierarchy;
+
+            if (isActive) {
+                particleSystem.Stop();
+                particleSystem.gameObject.SetActive(false);
+            } else {
+                particleSystem.gameObject.SetActive(true);
                 particleSystem.Play();
             }
-        } else {
-            particleSystem.Stop();
         }
     }
 }
