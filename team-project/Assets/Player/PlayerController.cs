@@ -19,15 +19,19 @@ public class PlayerController : MonoBehaviour
 
     private float dashTime;
     private bool isDashing;
+    private bool isCasting;
     private Vector3 dashDirection;
 
     // Bubble
     public GameObject bubblePrefab;
 
+    public GameObject toggleRing;
+    public GameObject toggleSmallRing;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        toggleRing.SetActive(false);
     }
 
     // Update is called once per frame
@@ -35,6 +39,7 @@ public class PlayerController : MonoBehaviour
     {
         checkForBubble();
         checkForDash();
+        checkForRing();
         updateMovementInput();
         rotatePlayer();
     }
@@ -53,7 +58,7 @@ public class PlayerController : MonoBehaviour
 
     private void updateMovementInput()
     {
-        if (!isDashing)
+        if (!isDashing && !isCasting)
         {
             float h = Input.GetAxisRaw("Horizontal");
             float v = Input.GetAxisRaw("Vertical");
@@ -72,7 +77,7 @@ public class PlayerController : MonoBehaviour
 
     private void checkForDash()
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && !isCasting)
         {
             isDashing = true;
             dashTime = dashDuration;
@@ -91,9 +96,39 @@ public class PlayerController : MonoBehaviour
 
     private void checkForBubble()
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing)
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing && !isCasting)
         {
             Instantiate(bubblePrefab, transform.position + transform.forward, Quaternion.identity);
+        }
+    }
+
+    private void checkForRing() {
+        if (Input.GetKey(KeyCode.Q))
+        {
+            isCasting = true;
+            inputDirection = Vector3.zero;
+            anim.SetBool("isRunning", false);
+            toggleRing.SetActive(true);
+            toggleSmallRing.SetActive(true);
+
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            Vector3 centerPoint = transform.position;
+
+            if (Physics.Raycast(ray, out RaycastHit raycastHit))
+            {
+                Vector3 targetPosition = raycastHit.point;
+                Vector3 direction = targetPosition - centerPoint;
+                
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
+            }
+
+        }
+        else
+        {
+            isCasting = false;
+            toggleRing.SetActive(false);
+            toggleSmallRing.SetActive(false);
         }
     }
 
