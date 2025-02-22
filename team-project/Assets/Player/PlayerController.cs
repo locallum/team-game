@@ -10,12 +10,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float rotSpeed = 10f;
     [SerializeField] private float dashSpeed = 100f;
     [SerializeField] private float dashDuration = 0.5f;
-    [SerializeField] private GameObject bubblePrefab;
 
     private Vector3 inputDirection;
     private float dashTime;
     private bool isDashing;
     private bool isCasting;
+    private bool isAttacking;
     private Vector3 dashDirection;
 
     // Bubble
@@ -24,18 +24,17 @@ public class PlayerController : MonoBehaviour
     public GameObject toggleRing;
     public GameObject toggleSmallRing;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         toggleRing.SetActive(false);
     }
 
-    // Update is called once per frame
     void Update()
     {
         checkForBubble();
         checkForDash();
         checkForRing();
+        checkForAtk();
         updateMovementInput();
         rotatePlayer();
     }
@@ -61,6 +60,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void checkForAtk()
+    {
+        if (!isDashing && !isCasting && !isAttacking && Input.GetMouseButtonDown(0))
+        {
+            anim.SetTrigger("basicAtk");
+        }
+    }
+
     private void checkForDash()
     {
         if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && !isCasting)
@@ -68,6 +75,7 @@ public class PlayerController : MonoBehaviour
             isDashing = true;
             dashTime = dashDuration;
             dashDirection = inputDirection; // Dash in the direction of movement
+            anim.SetTrigger("isRolling");
         }
 
         if (isDashing)
@@ -104,7 +112,11 @@ public class PlayerController : MonoBehaviour
                 Vector3 direction = targetPosition - centerPoint;
 
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
+                transform.rotation = Quaternion.Slerp(
+                    transform.rotation,
+                    Quaternion.Euler(0, targetRotation.eulerAngles.y, 0), // Only rotate on Y-axis
+                    rotSpeed * Time.deltaTime
+                );
             }
 
         }
@@ -121,7 +133,11 @@ public class PlayerController : MonoBehaviour
         if (inputDirection != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(inputDirection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                Quaternion.Euler(0, targetRotation.eulerAngles.y, 0), // Restrict rotation to Y-axis
+                rotSpeed * Time.deltaTime
+            );
         }
     }
 }
