@@ -1,36 +1,22 @@
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 
 public class PlayerController : MonoBehaviour
 {
     public CharacterController controller;
+    public Camera mainCamera;
+    public Animator anim;
+
+    [SerializeField] private float moveSpeed = 10f;
+    [SerializeField] private float rotSpeed = 10f;
+    [SerializeField] private float dashSpeed = 100f;
+    [SerializeField] private float dashDuration = 0.5f;
+    [SerializeField] private GameObject bubblePrefab;
+
     private Vector3 inputDirection;
-
-    [SerializeField] private Camera mainCamera;
-    [SerializeField] private Animator anim;
-
-    // Move variables
-    public float moveSpeed = 10f;
-    public float rotSpeed = 10f;
-
-    // Dash variables
-    public float dashSpeed = 100f;
-    public float dashDuration = 0.5f;
-
     private float dashTime;
     private bool isDashing;
     private Vector3 dashDirection;
 
-    // Bubble
-    public GameObject bubblePrefab;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
     void Update()
     {
         checkForBubble();
@@ -41,14 +27,8 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (isDashing)
-        {
-            controller.Move(dashDirection * dashSpeed * Time.deltaTime);
-        }
-        else
-        {
-            controller.Move(inputDirection * moveSpeed * Time.deltaTime);
-        }
+        Vector3 movement = isDashing ? dashDirection * dashSpeed : inputDirection * moveSpeed;
+        controller.Move(movement * Time.deltaTime);
     }
 
     private void updateMovementInput()
@@ -57,16 +37,12 @@ public class PlayerController : MonoBehaviour
         {
             float h = Input.GetAxisRaw("Horizontal");
             float v = Input.GetAxisRaw("Vertical");
-            inputDirection = new Vector3(h, 0f, v).normalized;
 
-            if (inputDirection != Vector3.zero)
-            {
-                anim.SetBool("isRunning", true);
-            }
-            else
-            {
-                anim.SetBool("isRunning", false);
-            }
+            // Adjust for 45-degree ortho camera perspective
+            inputDirection = (mainCamera.transform.right * h + mainCamera.transform.forward * v).normalized;
+            inputDirection.y = 0f; // Ensure movement stays on the XZ plane
+
+            anim.SetBool("isRunning", inputDirection != Vector3.zero);
         }
     }
 
@@ -76,16 +52,13 @@ public class PlayerController : MonoBehaviour
         {
             isDashing = true;
             dashTime = dashDuration;
-            dashDirection = transform.forward;
+            dashDirection = inputDirection; // Dash in the direction of movement
         }
 
         if (isDashing)
         {
             dashTime -= Time.deltaTime;
-            if (dashTime <= 0f)
-            {
-                isDashing = false;
-            }
+            if (dashTime <= 0f) isDashing = false;
         }
     }
 
@@ -93,7 +66,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing)
         {
-            Instantiate(bubblePrefab, transform.position + transform.forward, Quaternion.identity);
+            Instantiate(bubblePrefab, transform.position + inputDirection, Quaternion.identity);
         }
     }
 
