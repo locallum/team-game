@@ -1,3 +1,5 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -6,55 +8,58 @@ public class PlayerController : MonoBehaviour
     public Camera mainCamera;
     public Animator anim;
 
-    [SerializeField] private float moveSpeed = 10f;
-    [SerializeField] private float rotSpeed = 10f;
-    [SerializeField] private float dashSpeed = 100f;
-    [SerializeField] private float dashDuration = 0.5f;
+    [SerializeField] private float defaultMoveSpeed;
+    [SerializeField] private float rotSpeed;
+    [SerializeField] private float dashDuration;
+    [SerializeField] private float dashMoveSpeed;
+    [SerializeField] private float basicAtkDuration;
 
     private Vector3 inputDirection;
-    private float dashTime;
-    private bool isDashing;
-    private bool isCasting;
-    private bool isAttacking;
-    private Vector3 dashDirection;
+    private float currentMoveSpeed;
+
+    private bool canCast = true;
+    private bool canMove = true;
 
     // Bubble
     public GameObject bubblePrefab;
-
     public GameObject toggleRing;
     public GameObject toggleSmallRing;
 
     void Start()
     {
         toggleRing.SetActive(false);
+        toggleSmallRing.SetActive(false);
+        currentMoveSpeed = defaultMoveSpeed;
     }
 
     void Update()
     {
+        //attack and ability checks
         checkForBubble();
         checkForDash();
         checkForRing();
         checkForAtk();
+
+        //movement checks
         updateMovementInput();
         rotatePlayer();
     }
 
     void FixedUpdate()
     {
-        Vector3 movement = isDashing ? dashDirection * dashSpeed : inputDirection * moveSpeed;
+        Vector3 movement = inputDirection * currentMoveSpeed;
         controller.Move(movement * Time.deltaTime);
     }
 
     private void updateMovementInput()
     {
-        if (!isDashing && !isCasting)
+        if (canMove)
         {
             float h = Input.GetAxisRaw("Horizontal");
             float v = Input.GetAxisRaw("Vertical");
 
-            // Adjust for 45-degree ortho camera perspective
             inputDirection = (mainCamera.transform.right * h + mainCamera.transform.forward * v).normalized;
-            inputDirection.y = 0f; // Ensure movement stays on the XZ plane
+            inputDirection.y = 0f;
 
             anim.SetBool("isRunning", inputDirection != Vector3.zero);
         }
@@ -62,32 +67,45 @@ public class PlayerController : MonoBehaviour
 
     private void checkForAtk()
     {
-        if (!isDashing && !isCasting && !isAttacking && Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && canCast)
         {
-            anim.SetTrigger("basicAtk");
+            StartCoroutine(BasicAtkCoroutine());
         }
+    }
+
+    private IEnumerator BasicAtkCoroutine()
+    {
+        anim.SetTrigger("basicAtk");
+        canCast = false;
+
+        yield return new WaitForSeconds(basicAtkDuration);
+
+        canCast = true;
     }
 
     private void checkForDash()
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && !isCasting)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && canCast)
         {
-            isDashing = true;
-            dashTime = dashDuration;
-            dashDirection = inputDirection; // Dash in the direction of movement
-            anim.SetTrigger("isRolling");
+            StartCoroutine(DashCoroutine());
         }
+    }
 
-        if (isDashing)
-        {
-            dashTime -= Time.deltaTime;
-            if (dashTime <= 0f) isDashing = false;
-        }
+    private IEnumerator DashCoroutine()
+    {
+        canCast = false;
+        currentMoveSpeed = dashMoveSpeed;
+        anim.SetTrigger("roll");
+
+        yield return new WaitForSeconds(dashDuration);
+
+        currentMoveSpeed = defaultMoveSpeed;
+        canCast = true;
     }
 
     private void checkForBubble()
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing && !isCasting)
+        if (Input.GetKeyDown(KeyCode.LeftControl) && canCast)
         {
             Instantiate(bubblePrefab, transform.position + inputDirection, Quaternion.identity);
         }
@@ -95,9 +113,9 @@ public class PlayerController : MonoBehaviour
 
     private void checkForRing()
     {
-        if (Input.GetKey(KeyCode.Q))
+        if (Input.GetKey(KeyCode.Q) && canCast)
         {
-            isCasting = true;
+            canMove = false;
             inputDirection = Vector3.zero;
             anim.SetBool("isRunning", false);
             toggleRing.SetActive(true);
@@ -114,15 +132,14 @@ public class PlayerController : MonoBehaviour
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
                 transform.rotation = Quaternion.Slerp(
                     transform.rotation,
-                    Quaternion.Euler(0, targetRotation.eulerAngles.y, 0), // Only rotate on Y-axis
+                    Quaternion.Euler(0, targetRotation.eulerAngles.y, 0),
                     rotSpeed * Time.deltaTime
                 );
             }
-
         }
-        else
+        else if (Input.GetKeyUp(KeyCode.Q))
         {
-            isCasting = false;
+            canMove = true;
             toggleRing.SetActive(false);
             toggleSmallRing.SetActive(false);
         }
@@ -135,7 +152,7 @@ public class PlayerController : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(inputDirection);
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
-                Quaternion.Euler(0, targetRotation.eulerAngles.y, 0), // Restrict rotation to Y-axis
+                Quaternion.Euler(0, targetRotation.eulerAngles.y, 0),
                 rotSpeed * Time.deltaTime
             );
         }

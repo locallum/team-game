@@ -178,11 +178,11 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 0.01
+  far clip plane: 200
   field of view: 70
-  orthographic: 0
-  orthographic size: 5
+  orthographic: 1
+  orthographic size: 12
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -206,8 +206,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.46174863, y: 0, z: 0, w: 0.8870109}
-  m_LocalPosition: {x: 0, y: 16, z: -10}
+  m_LocalRotation: {x: 0.31598538, y: -0.3596048, z: 0.13088542, w: 0.8681629}
+  m_LocalPosition: {x: 40, y: 48, z: -40}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -826,10 +826,11 @@ MonoBehaviour:
   controller: {fileID: 1969642574}
   mainCamera: {fileID: 330585545}
   anim: {fileID: 1537717631}
-  moveSpeed: 12
-  rotSpeed: 20
-  dashSpeed: 25
+  defaultMoveSpeed: 20
+  rotSpeed: 25
   dashDuration: 0.8
+  dashMoveSpeed: 30
+  basicAtkDuration: 0.6
   bubblePrefab: {fileID: 5303568950711124141, guid: 830d8683694f27845bb98263b6b7a9fa, type: 3}
   toggleRing: {fileID: 911151313}
   toggleSmallRing: {fileID: 919208911}
@@ -869,7 +870,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 16, z: -10}
+  FollowOffset: {x: 40, y: 48, z: -40}
 --- !u!114 &2068048227
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -895,9 +896,9 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 70
-    OrthographicSize: 5
-    NearClipPlane: 0.3
-    FarClipPlane: 1000
+    OrthographicSize: 12
+    NearClipPlane: 0.01
+    FarClipPlane: 200
     Dutch: 0
     ModeOverride: 0
     PhysicalProperties:
@@ -921,13 +922,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2068048224}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.46174863, y: 0, z: 0, w: 0.8870109}
-  m_LocalPosition: {x: 0, y: 16, z: -10}
+  m_LocalRotation: {x: 0.31598538, y: -0.3596048, z: 0.13088542, w: 0.8681629}
+  m_LocalPosition: {x: 40, y: 48, z: -40}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 55, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 40, y: -45, z: 0}
 --- !u!1001 &3020168034146554162
 PrefabInstance:
   m_ObjectHideFlags: 0
